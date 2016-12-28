@@ -1,3 +1,14 @@
+/*
+ * 
+ * Topics to solve
+ * 
+ * Change Customer Details
+ * Send to Amazon Server
+ * Aceita valores acima do saldo disponivel
+ * 
+ * 
+ * */
+
 package gmit;
 
 import java.io.BufferedWriter;
@@ -10,7 +21,6 @@ import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.Scanner;
 import java.util.Map.Entry;
 
@@ -25,36 +35,31 @@ class ClientServiceThread extends Thread {
 	ObjectOutputStream out;
 	ObjectInputStream in;
 
+	// Variables to set filenames
 	String filename = "loginData.dat";
 	String statements = "Statements.dat";
 
-	// User Dada for register
+	// Instance of Bean Classes
 	ClientBean client = new ClientBean();
 	BankBean account = new BankBean();
 	ServicesBean services = new ServicesBean();
 
+	// Local Variables
 	String clientName = "";
 	String clientAddress = "";
 	String clientACnumber = "";
 	String clientUserName = "";
 	String clientPassword = "";
-
 	double balance = 0.00;
 	double transaction = 0.00;
-
 	String lastTransactions = "";
-
-	
-	
-//	ArrayList<ClientBean> clientsBank = new ArrayList<ClientBean>();
-//	ArrayList<BankBean> moviments = new ArrayList<BankBean>();
-//	Hashtable<String, ArrayList<BankBean>> clientsStatements = new Hashtable<String, ArrayList<BankBean>>();
 
 	ClientServiceThread(Socket s, int i) {
 		clientSocket = s;
 		clientID = i;
 	}
 
+	// Method to Send MSG
 	void sendMessage(String msg) {
 		try {
 			out.writeObject(msg);
@@ -65,31 +70,53 @@ class ClientServiceThread extends Thread {
 		}
 	}
 
-
-
 	/**
 	 * This is the method which makes use of load values from file where the
-	 * data are storage and load into a Arraylist.
+	 * data are storage and load into a List.
 	 * 
-	 * @param no
-	 *            param.
-	 * @return clientsBank.
+	 * @return void
 	 */
 	public void loadClientsFile() throws FileNotFoundException {
-
 		Scanner scan = new Scanner(new File(filename));
 
+		// Read each line into the file
 		while (scan.hasNextLine()) {
 			String line = scan.nextLine();
 			String[] clientValue = line.split(",");
 
 			services.addClients(clientValue[0], clientValue[1], clientValue[2], clientValue[3], clientValue[4]);
-			//services.clientsBank.add(new ClientBean(clientValue[0], clientValue[1], clientValue[2], clientValue[3], clientValue[4]));
 		}
 
 		scan.close();
+	}
 
-		//return services.clientsBank;
+	/**
+	 * Change details into the file users
+	 * 
+	 * 
+	 */
+
+	public void changeClientsFile(String acNumber, String newAddress, String newUserName, String newPassword)
+			throws FileNotFoundException {
+		Scanner scan = new Scanner(new File(filename));
+
+		System.out.println(acNumber + " " + newAddress + " " + newUserName + " " + newPassword);
+
+		while (scan.hasNextLine()) {
+			String line = scan.nextLine();
+			String[] clientValue = line.split(",");
+
+			if (clientValue[2].equals(acNumber)) {
+
+				line.replaceAll(clientValue[1], newAddress);
+				line.replaceAll(clientValue[3], newUserName);
+				line.replaceAll(clientValue[4], newPassword);
+
+				System.out.println(line);
+			}
+		}
+
+		scan.close();
 	}
 
 	/**
@@ -97,7 +124,7 @@ class ClientServiceThread extends Thread {
 	 * 
 	 * @param verifyUser(String
 	 *            clientACnumber, String clientUserName, String clientPassword).
-	 * @return boolean loginConfimation.
+	 * @return loginConfimation.
 	 */
 
 	public synchronized boolean verifyUser(String clientACnumber, String clientUserName, String clientPassword) {
@@ -110,23 +137,47 @@ class ClientServiceThread extends Thread {
 					&& clientUserName.equals(services.getClientsBank().get(i).getClientUserName())
 					&& clientPassword.equals(services.getClientsBank().get(i).getClientPassword())) {
 				loginConfimation = true;
-				System.out.println("OK ");
-
 				i = services.getClientsBank().size();
 			}
-
 		}
 
 		return loginConfimation;
 	}
+	
+	
+	
+	
+	/**
+	 * This is the method verify if the user AC exist into the system
+	 * 
+	 * @param verifyUser(String
+	 *            clientACnumber, String clientUserName, String clientPassword).
+	 * @return loginConfimation.
+	 */
+
+	public synchronized boolean verifyUserAC(String clientACnumber) {
+
+		loginConfimation = true;
+
+		for (int i = 0; i < services.getClientsBank().size(); i++) {
+
+			if (clientACnumber.equals(services.getClientsBank().get(i).getClientACnumber())) {
+				loginConfimation = false;
+				i = services.getClientsBank().size();
+			}
+		}
+
+		return loginConfimation;
+	}
+	
 
 	/**
 	 * This is the method which makes use of load values from file where the
-	 * data are storage and load into a Arraylist.
+	 * data are storage and load into a list.
 	 * 
 	 * @param no
 	 *            param.
-	 * @return clientsBank.
+	 * @return void.
 	 */
 	public void loadStatementsFile() throws FileNotFoundException {
 
@@ -136,22 +187,12 @@ class ClientServiceThread extends Thread {
 			String line = scan.nextLine();
 			String[] clientValue = line.split(",");
 
-			//System.out.println(clientValue[0]);
-
 			double trans = Double.parseDouble(clientValue[1]);
 			double bal = Double.parseDouble(clientValue[2]);
 
 			services.addStatements(clientValue[0], trans, bal);
-			
-			
-			//services.moviments.add(new BankBean(trans, bal));
-
-			//services.clientsStatements.put(clientValue[0], services.moviments);
-
 		}
-
 		scan.close();
-
 	}
 
 	public void run() {
@@ -168,7 +209,7 @@ class ClientServiceThread extends Thread {
 
 			sendMessage("Connection successful\n----------------------\n \nWelcome Bank of GMIT");
 
-			loadClientsFile();
+			loadClientsFile(); // Load user into a list
 
 			boolean finish = false;
 
@@ -179,11 +220,13 @@ class ClientServiceThread extends Thread {
 
 					message = (String) in.readObject();
 
+					/*
+					 * Login menu
+					 * 
+					 */
 					if (message.compareTo("1") == 0) {
 
 						loginConfimation = false;
-
-						//loadClientsFile();
 
 						do {
 
@@ -199,42 +242,56 @@ class ClientServiceThread extends Thread {
 							loginConfimation = verifyUser(clientACnumber, clientUserName, clientPassword);
 
 							// *********** Disable Login just for Testing
-					
-							 loginConfimation = true;
+							// ******************************************************************
+							// loginConfimation = true;
 
 						} while (loginConfimation == false);
 
 						exit = false;
 
+						// After the login
 						// Load all values from statement file
 						loadStatementsFile();
 
 						do {
 
+							// check the balance to show in menu
 							double bal = 0.00;
 
-							for (Entry<String, ArrayList<BankBean>> entry : services.getClientsStatements().entrySet()) {
+							for (Entry<String, ArrayList<BankBean>> entry : services.getClientsStatements()
+									.entrySet()) {
 								String key = entry.getKey();
-
 								if (key.equals(clientACnumber)) {
-
 									for (BankBean val : entry.getValue()) {
 										bal = val.getBalance();
 									}
 								}
-
 							}
 
-							sendMessage("\n----------------------------------\n--> Bank AC Number.: " + clientACnumber
+							// Print the menu OP
+							// In message is include the balance
+							sendMessage("\n----------------------------------\n--> Bank AC Number.: " + clientACnumber + " - " + clientUserName
 									+ "\n--> Current balance.: " + bal
 									+ "\n\nOP 3 - Change customer details\nOP 4 - Make Lodgements\nOP 5 - Make Withdrawal\nOP 6 - View the last ten transactions\n\nOP 99 - Exit\n\n"
 									+ lastTransactions);
+
 							message = (String) in.readObject();
 
 							lastTransactions = "";
 
 							// Change customer details
 							if (message.compareTo("3") == 0) {
+
+								sendMessage("Enter your Address");
+								clientAddress = (String) in.readObject();
+
+								sendMessage("Enter your Username");
+								clientUserName = (String) in.readObject();
+
+								sendMessage("Enter your Password");
+								clientPassword = (String) in.readObject();
+
+								changeClientsFile(clientACnumber, clientAddress, clientUserName, clientPassword);
 
 							}
 
@@ -254,17 +311,12 @@ class ClientServiceThread extends Thread {
 								transaction = value;
 
 								appendFileStatements.println(clientACnumber + "," + transaction + "," + balance);
-								
+
 								services.addStatements(clientACnumber, transaction, balance);
-								
-								
-//								services.moviments.add(new BankBean(transaction, balance));
-//								services.clientsStatements.put(clientACnumber, services.moviments);
 
 								appendFileStatements.close();
 								bw.close();
 								fw.close();
-
 							}
 
 							// Make Withdrawal
@@ -285,18 +337,10 @@ class ClientServiceThread extends Thread {
 								} while (value > 1000 && value > balance);
 
 								balance = balance - value;
-
 								value *= -1; // Convert to a negative number
-
 								transaction = value;
-
 								appendFileStatements.println(clientACnumber + "," + transaction + "," + balance);
-
-								
 								services.addStatements(clientACnumber, transaction, balance);
-								
-//								services.moviments.add(new BankBean(transaction, balance));
-//								services.clientsStatements.put(clientACnumber, services.moviments);
 
 								appendFileStatements.close();
 								bw.close();
@@ -306,22 +350,23 @@ class ClientServiceThread extends Thread {
 
 							// View the last ten transactions
 							if (message.compareTo("6") == 0) {
-								
+
 								int test = services.getClientsStatements().size();
 								int test2 = services.getClientsStatements().values().size();
-								
+
 								System.out.println(test + " Size " + test2);
 
 								int count = 1;
 								lastTransactions = "Transactions    Balance\n-------------------------\n";
 
-								for (Entry<String, ArrayList<BankBean>> entry : services.getClientsStatements().entrySet()) {
+								for (Entry<String, ArrayList<BankBean>> entry : services.getClientsStatements()
+										.entrySet()) {
 									String key = entry.getKey();
-									
+
 									System.out.println(key);
 
 									if (key.equals(clientACnumber)) {
-										
+
 										System.out.println("OK " + key);
 
 										int sizeValuesStatement = entry.getValue().size() - 10;
@@ -343,31 +388,53 @@ class ClientServiceThread extends Thread {
 
 								}
 							}
+							
+							
+							
+							if (message.compareTo("99") == 0) {
+								sendMessage("Exit - Finish connection");
+								finish = true;
+								
+								
+							}
+							
 
-						} while (exit == false);
+						} while (finish == false);
 
 					}
 
+					/*
+					 * 
+					 * Create a new User
+					 * 
+					 */
 					if (message.compareTo("2") == 0) {
 
 						FileWriter fw = new FileWriter(filename, true);
 						BufferedWriter bw = new BufferedWriter(fw);
 						PrintWriter appendFileLogin = new PrintWriter(bw);
 
-						sendMessage("Enter your Name");
-						clientName = (String) in.readObject();
+						loginConfimation = false;
 
-						sendMessage("Enter your Address");
-						clientAddress = (String) in.readObject();
+						do {
+							sendMessage("Enter your Name");
+							clientName = (String) in.readObject();
 
-						sendMessage("Enter A/C Number");
-						clientACnumber = (String) in.readObject();
+							sendMessage("Enter your Address");
+							clientAddress = (String) in.readObject();
 
-						sendMessage("Enter your Username");
-						clientUserName = (String) in.readObject();
+							sendMessage("Enter A/C Number");
+							clientACnumber = (String) in.readObject();
 
-						sendMessage("Enter your Password");
-						clientPassword = (String) in.readObject();
+							sendMessage("Enter your Username");
+							clientUserName = (String) in.readObject();
+
+							sendMessage("Enter your Password");
+							clientPassword = (String) in.readObject();
+
+							loginConfimation = verifyUserAC(clientACnumber);
+
+						} while (loginConfimation == false);
 
 						// Send values to the method
 						// to add arrayList
@@ -384,7 +451,7 @@ class ClientServiceThread extends Thread {
 					}
 
 					if (message.compareTo("99") == 0) {
-						sendMessage("exit");
+						sendMessage("Exit - Finish connection");
 						finish = true;
 
 					}

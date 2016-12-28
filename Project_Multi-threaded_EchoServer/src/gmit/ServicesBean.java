@@ -21,6 +21,9 @@ public class ServicesBean {
 		this.clientsStatements = clientsStatements;
 	}
 
+	/*
+	 * Get and Sets
+	 * */
 	public ArrayList<ClientBean> getClientsBank() {
 		return clientsBank;
 	}
@@ -37,10 +40,21 @@ public class ServicesBean {
 		this.clientsStatements = clientsStatements;
 	}
 
+	
+	
+	/*
+	 * Add clients into a list
+	 * */
+	
 	public void addClients(String name, String address, String banAC, String username, String password) {
 		clientsBank.add(new ClientBean(name, address, banAC, username, password));
 	}
 
+	
+	/*
+	 * Add Statements into a list
+	 * */
+	
 	public void addStatements(String acNumber, double trans, double bal) {
 		
 		if (clientsStatements.get(acNumber) == null){
@@ -48,11 +62,7 @@ public class ServicesBean {
 		}
 		
 		BankBean bank = new BankBean(trans, bal);
-	
 		clientsStatements.get(acNumber).add(bank);
-				
 		System.out.println(acNumber + " " + trans + " " + bal);
-
 	}
-
 }
