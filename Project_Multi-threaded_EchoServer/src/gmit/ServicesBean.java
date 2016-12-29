@@ -67,7 +67,7 @@ public class ServicesBean {
 
 		BankBean bank = new BankBean(trans, bal);
 		clientsStatements.get(acNumber).add(bank);
-		System.out.println(acNumber + " " + trans + " " + bal);
+		//System.out.println(acNumber + " " + trans + " " + bal);
 	}
 
 	public void changeClientsDetails(String clientACnumber, String clientAddress, String clientUserName,
