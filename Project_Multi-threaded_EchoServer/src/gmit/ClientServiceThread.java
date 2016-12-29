@@ -90,6 +90,10 @@ class ClientServiceThread extends Thread {
 		scan.close();
 	}
 
+
+
+	
+	
 	/**
 	 * Change details into the file users
 	 * 
@@ -98,6 +102,8 @@ class ClientServiceThread extends Thread {
 
 	public void changeClientsFile(String acNumber, String newAddress, String newUserName, String newPassword)
 			throws FileNotFoundException {
+		
+			
 		Scanner scan = new Scanner(new File(filename));
 
 		System.out.println(acNumber + " " + newAddress + " " + newUserName + " " + newPassword);
@@ -291,7 +297,10 @@ class ClientServiceThread extends Thread {
 								sendMessage("Enter your Password");
 								clientPassword = (String) in.readObject();
 
-								changeClientsFile(clientACnumber, clientAddress, clientUserName, clientPassword);
+								//changeClientsFile(clientACnumber, clientAddress, clientUserName, clientPassword);
+								
+								services.changeClientsDetails(clientACnumber, clientAddress, clientUserName, clientPassword);
+								
 
 							}
 
@@ -307,12 +316,12 @@ class ClientServiceThread extends Thread {
 
 								double value = Double.parseDouble(amount);
 
-								balance = balance + value;
+								bal += value;
 								transaction = value;
 
-								appendFileStatements.println(clientACnumber + "," + transaction + "," + balance);
+								appendFileStatements.println(clientACnumber + "," + transaction + "," + bal);
 
-								services.addStatements(clientACnumber, transaction, balance);
+								services.addStatements(clientACnumber, transaction, bal);
 
 								appendFileStatements.close();
 								bw.close();
@@ -329,18 +338,19 @@ class ClientServiceThread extends Thread {
 								double value;
 
 								do {
-									sendMessage("Enter amount Withdrawal (limit 1000.00)");
+									sendMessage("Enter amount Withdrawal (Max €1000.00)");
 									String amount = (String) in.readObject();
 
 									value = Double.parseDouble(amount);
 
-								} while (value > 1000 && value > balance);
+								} while (value > 1000);
 
-								balance = balance - value;
+								bal -= value;
 								value *= -1; // Convert to a negative number
 								transaction = value;
-								appendFileStatements.println(clientACnumber + "," + transaction + "," + balance);
-								services.addStatements(clientACnumber, transaction, balance);
+								appendFileStatements.println(clientACnumber + "," + transaction + "," + bal);
+								
+								services.addStatements(clientACnumber, transaction, bal);
 
 								appendFileStatements.close();
 								bw.close();
