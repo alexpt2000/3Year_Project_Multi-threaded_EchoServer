@@ -336,7 +336,7 @@ class ClientServiceThread extends Thread {
 									String amount = (String) in.readObject();
 
 									value = Double.parseDouble(amount);
-									
+
 									creditLimit = bal - value;
 
 								} while (creditLimit < -1000);
