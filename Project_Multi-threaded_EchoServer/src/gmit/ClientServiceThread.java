@@ -90,10 +90,6 @@ class ClientServiceThread extends Thread {
 		scan.close();
 	}
 
-
-
-	
-	
 	/**
 	 * Change details into the file users
 	 * 
@@ -102,8 +98,7 @@ class ClientServiceThread extends Thread {
 
 	public void changeClientsFile(String acNumber, String newAddress, String newUserName, String newPassword)
 			throws FileNotFoundException {
-		
-			
+
 		Scanner scan = new Scanner(new File(filename));
 
 		System.out.println(acNumber + " " + newAddress + " " + newUserName + " " + newPassword);
@@ -149,10 +144,7 @@ class ClientServiceThread extends Thread {
 
 		return loginConfimation;
 	}
-	
-	
-	
-	
+
 	/**
 	 * This is the method verify if the user AC exist into the system
 	 * 
@@ -175,7 +167,6 @@ class ClientServiceThread extends Thread {
 
 		return loginConfimation;
 	}
-	
 
 	/**
 	 * This is the method which makes use of load values from file where the
@@ -276,8 +267,8 @@ class ClientServiceThread extends Thread {
 
 							// Print the menu OP
 							// In message is include the balance
-							sendMessage("\n----------------------------------\n--> Bank AC Number.: " + clientACnumber + " - " + clientUserName
-									+ "\n--> Current balance.: " + bal
+							sendMessage("\n----------------------------------\n--> Bank AC Number.: " + clientACnumber
+									+ " - " + clientUserName + "\n--> Current balance.: " + bal
 									+ "\n\nOP 3 - Change customer details\nOP 4 - Make Lodgements\nOP 5 - Make Withdrawal\nOP 6 - View the last ten transactions\n\nOP 99 - Exit\n\n"
 									+ lastTransactions);
 
@@ -297,10 +288,12 @@ class ClientServiceThread extends Thread {
 								sendMessage("Enter your Password");
 								clientPassword = (String) in.readObject();
 
-								//changeClientsFile(clientACnumber, clientAddress, clientUserName, clientPassword);
-								
-								services.changeClientsDetails(clientACnumber, clientAddress, clientUserName, clientPassword);
-								
+								// changeClientsFile(clientACnumber,
+								// clientAddress, clientUserName,
+								// clientPassword);
+
+								services.changeClientsDetails(clientACnumber, clientAddress, clientUserName,
+										clientPassword);
 
 							}
 
@@ -336,20 +329,23 @@ class ClientServiceThread extends Thread {
 								PrintWriter appendFileStatements = new PrintWriter(bw);
 
 								double value;
+								double creditLimit;
 
 								do {
-									sendMessage("Enter amount Withdrawal (Max €1000.00)");
+									sendMessage("Enter amount Withdrawal (Max credit limit €1000.00)");
 									String amount = (String) in.readObject();
 
 									value = Double.parseDouble(amount);
+									
+									creditLimit = bal - value;
 
-								} while (value > 1000);
+								} while (creditLimit < -1000);
 
 								bal -= value;
 								value *= -1; // Convert to a negative number
 								transaction = value;
 								appendFileStatements.println(clientACnumber + "," + transaction + "," + bal);
-								
+
 								services.addStatements(clientACnumber, transaction, bal);
 
 								appendFileStatements.close();
@@ -398,16 +394,12 @@ class ClientServiceThread extends Thread {
 
 								}
 							}
-							
-							
-							
+
 							if (message.compareTo("99") == 0) {
 								sendMessage("Exit - Finish connection");
 								finish = true;
-								
-								
+
 							}
-							
 
 						} while (finish == false);
 
